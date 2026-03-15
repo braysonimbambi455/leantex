@@ -39,11 +39,11 @@ class Command(BaseCommand):
             {
                 'category': 'CCTV Installation',
                 'name': 'Home CCTV Installation - 4 Camera System',
-                'description': 'Complete home security solution with 4 high-definition cameras, DVR with 1TB storage, and professional installation. Includes remote viewing via smartphone and 1-year warranty.',
+              'description': 'Complete home security solution with 4 high-definition cameras, DVR with 1TB storage, and professional installation. Includes remote viewing via smartphone and 1-year warranty.',
                 'price': 25000,
                 'duration': 180,
                 'features': '4 HD 1080p cameras,DVR with 1TB storage,Remote viewing app,Professional installation,1 year warranty,Night vision capability,Motion detection,Smartphone alerts',
-                'image_url': 'https://images.unsplash.com/photo-1557324265-a5f3e5d3c0b0?w=800',
+                'image_url': 'https://images.pexels.com/photos/3961311/pexels-photo-3961311.jpeg?auto=compress&cs=tinysrgb&w=800',
                 'is_available': True
             },
             {
@@ -96,16 +96,6 @@ class Command(BaseCommand):
                 'duration': 180,
                 'features': 'Multiple access points,VLAN configuration,Firewall setup,Network security,Server room setup,60+ device capacity,6 months support',
                 'image_url': 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800',
-                'is_available': True
-            },
-            {
-                'category': 'WiFi Setup',
-                'name': 'Mesh WiFi System',
-                'description': 'Whole-home mesh WiFi system for seamless coverage in large houses. No dead zones, automatic switching between nodes.',
-                'price': 25000,
-                'duration': 120,
-                'features': '3 mesh nodes,Whole-home coverage,Seamless roaming,Parental controls,Guest network,App control,3 years warranty',
-                'image_url': 'https://images.unsplash.com/photo-1573164574572-cb89e39749e4?w=800',
                 'is_available': True
             },
             {
@@ -185,11 +175,11 @@ class Command(BaseCommand):
             {
                 'category': 'Computer Sales',
                 'name': 'All-in-One Desktop',
-                'description': 'Space-saving all-in-one desktop computer. Perfect for home offices, reception areas, and general use.',
+              'description': 'Space-saving all-in-one desktop computer. Perfect for home offices, reception areas, and general use.',
                 'price': 55000,
                 'duration': 30,
                 'features': 'Intel Core i5,8GB RAM,256GB SSD,23.8" touch screen,Windows 11 Home,Wireless keyboard & mouse,1 year warranty',
-                'image_url': 'https://images.unsplash.com/photo-1614624532983-5cee2b047af7?w=800',
+                'image_url': 'https://images.pexels.com/photos/1029757/pexels-photo-1029757.jpeg?auto=compress&cs=tinysrgb&w=800',
                 'is_available': True
             },
             {
@@ -256,19 +246,9 @@ class Command(BaseCommand):
             },
             {
                 'category': 'Laptop Repair',
-                'name': 'RAM Upgrade',
-                'description': 'Increase your laptop speed with a RAM upgrade. Supports all major laptop brands and models.',
-                'price': 4000,
-                'duration': 45,
-                'features': '4GB/8GB/16GB options,Compatibility testing,Memory optimization,1 year warranty,Free installation',
-                'image_url': 'https://images.unsplash.com/photo-1591799265444-d4a3b5b1c1b6?w=800',
-                'is_available': True
-            },
-            {
-                'category': 'Laptop Repair',
                 'name': 'Virus Removal & System Cleanup',
                 'description': 'Complete virus removal and system optimization. Make your laptop run like new again.',
-                'price': 2500,
+                'price': 2000,
                 'duration': 60,
                 'features': 'Full virus scan,Malware removal,System optimization,Startup cleanup,Temporary file cleanup,3 months protection',
                 'image_url': 'https://images.unsplash.com/photo-1585060544812-6b45742d762f?w=800',
@@ -278,7 +258,7 @@ class Command(BaseCommand):
                 'category': 'Laptop Repair',
                 'name': 'Water Damage Repair',
                 'description': 'Emergency water damage repair service. Quick response to save your laptop from liquid damage.',
-                'price': 7000,
+                'price': 5000,
                 'duration': 180,
                 'features': 'Emergency service,Component cleaning,Corrosion treatment,Testing,1 month warranty,Free diagnosis',
                 'image_url': 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800',
@@ -288,7 +268,7 @@ class Command(BaseCommand):
                 'category': 'Laptop Repair',
                 'name': 'Charging Port Repair',
                 'description': 'Fix broken or loose charging ports. Get your laptop charging properly again.',
-                'price': 3500,
+                'price': 3000,
                 'duration': 60,
                 'features': 'Port replacement,Soldering repair,Charging test,1 month warranty,Quick service',
                 'image_url': 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800',
