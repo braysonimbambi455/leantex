@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Assign Technician - Booking {{ booking.booking_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:admin' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:manage_bookings' %}">Manage Bookings</a></li>
+                    <li class="breadcrumb-item active">Assign Technician</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Booking Details -->
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Booking Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="text-muted small">Booking Number</label>
+                        <p class="fw-bold">{{ booking.booking_number }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small">Service</label>
+                        <p class="fw-bold">{{ booking.service.name }}</p>
+                        <p class="text-muted small">{{ booking.service.category.name }} | KSh {{ booking.service.price }}</p>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="text-muted small">Date</label>
+                            <p class="fw-bold">{{ booking.date|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="col-6">
+                            <label class="text-muted small">Time</label>
+                            <p class="fw-bold">{{ booking.time|time:"h:i A" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small">Customer</label>
+                        <p class="fw-bold">{{ booking.customer_name }}</p>
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i>{{ booking.customer_phone }}</p>
+                        <p><i class="fas fa-envelope me-2"></i>{{ booking.customer_email }}</p>
+                    </div>
+                    
+                    {% if booking.customer_address %}
+                    <div class="mb-3">
+                        <label class="text-muted small">Address</label>
+                        <p>{{ booking.customer_address }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if booking.notes %}
+                    <div class="mb-3">
+                        <label class="text-muted small">Special Instructions</label>
+                        <p class="bg-light p-2 rounded">{{ booking.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Technician Selection -->
+        <div class="col-lg-7">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-cog me-2"></i>Select Technician
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Available Technicians</label>
+                            <div class="list-group">
+                                {% for tech in technicians %}
+                                <label class="list-group-item list-group-item-action d-flex align-items-center">
+                                    <input type="radio" name="technician" value="{{ tech.id }}" class="form-check-input me-3" required>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>{{ tech.get_full_name|default:tech.username }}</strong>
+                                            <span class="badge bg-info">Current Load: {{ tech.assigned_count }}/5</span>
+                                        </div>
+                                        <div class="small text-muted">
+                                            <span class="me-3"><i class="fas fa-check-circle me-1"></i>Completed: {{ tech.completed_count }}</span>
+                                            <span class="me-3"><i class="fas fa-star me-1 text-warning"></i>Rating: {{ tech.avg_rating|default:"New"|floatformat:1 }}</span>
+                                            <span><i class="fas fa-phone me-1"></i>{{ tech.profile.phone_number|default:"No phone" }}</span>
+                                        </div>
+                                    </div>
+                                </label>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                    <h6>No Technicians Available</h6>
+                                    <p class="text-muted">Please add technicians to the system first.</p>
+                                    <a href="{% url 'admin:accounts_user_add' %}" class="btn btn-primary btn-sm">
+                                        Add Technician
+                                    </a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> The technician will receive an email notification with all booking details.
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'dashboard:manage_bookings' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </a>
+                            <button type="submit" class="btn btn-success" {% if not technicians %}disabled{% endif %}>
+                                <i class="fas fa-user-check me-2"></i>Assign Technician
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.list-group-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(5px);
+}
+
+.list-group-item input[type="radio"]:checked + div {
+    color: #0d6efd;
+}
+
+.badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.7rem;
+}
+</style>
+{% endblock %}

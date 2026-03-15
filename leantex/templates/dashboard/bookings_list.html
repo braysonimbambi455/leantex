@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h2 class="fw-bold mb-2">
+                                <i class="fas fa-calendar-alt me-2"></i>My Bookings
+                            </h2>
+                            <p class="mb-0 opacity-8">
+                                <i class="fas fa-user me-2"></i>{{ user.get_full_name|default:user.username }} | 
+                                <i class="fas fa-envelope ms-3 me-2"></i>{{ user.email }}
+                            </p>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <a href="{% url 'services:list' %}" class="btn btn-light">
+                                <i class="fas fa-plus-circle me-2"></i>Book New Service
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Filter by Status</label>
+                            <select name="status" id="status" class="form-select" onchange="this.form.submit()">
+                                <option value="">All Statuses</option>
+                                <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                <option value="assigned" {% if request.GET.status == 'assigned' %}selected{% endif %}>Assigned</option>
+                                <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_from" class="form-label">Date From</label>
+                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request.GET.date_from }}" onchange="this.form.submit()">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_to" class="form-label">Date To</label>
+                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request.GET.date_to }}" onchange="this.form.submit()">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <a href="{% url 'bookings:list' %}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-redo me-2"></i>Reset Filters
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bookings List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {% if bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Booking #</th>
+                                        <th>Service</th>
+                                        <th>Date & Time</th>
+                                        <th>Technician</th>
+                                        <th>Status</th>
+                                        <th>Payment</th>
+                                        <th>Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in bookings %}
+                                    <tr>
+                                        <td>
+                                            <span class="fw-bold">{{ booking.booking_number }}</span>
+                                            <br>
+                                            <small class="text-muted">{{ booking.created_at|date:"M d, Y" }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if booking.service.image %}
+                                                    <img src="{{ booking.service.image.url }}" class="rounded-circle me-2" width="40" height="40" alt="{{ booking.service.name }}" style="object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-cog text-primary"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <strong>{{ booking.service.name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ booking.service.category.name }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <i class="far fa-calendar text-primary me-1"></i>{{ booking.date|date:"D, M d, Y" }}<br>
+                                            <i class="far fa-clock text-primary me-1"></i>{{ booking.time|time:"h:i A" }}
+                                            <br>
+                                            <small class="text-muted">{{ booking.duration }} mins</small>
+                                        </td>
+                                        <td>
+                                            {% if booking.technician %}
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-success bg-opacity-10 rounded-circle p-2 me-2">
+                                                        <i class="fas fa-user-cog text-success"></i>
+                                                    </div>
+                                                    <div>
+                                                        <strong>{{ booking.technician.get_full_name|default:booking.technician.username }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">Assigned</small>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <span class="badge bg-warning bg-opacity-25 text-warning p-2">
+                                                    <i class="fas fa-clock me-1"></i>Not Assigned
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if booking.status == 'confirmed' %}
+                                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                                    <i class="fas fa-check-circle me-1"></i>Confirmed
+                                                </span>
+                                            {% elif booking.status == 'pending' %}
+                                                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">
+                                                    <i class="fas fa-clock me-1"></i>Pending
+                                                </span>
+                                            {% elif booking.status == 'assigned' %}
+                                                <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
+                                                    <i class="fas fa-user-check me-1"></i>Assigned
+                                                </span>
+                                            {% elif booking.status == 'in_progress' %}
+                                                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                                                    <i class="fas fa-spinner fa-spin me-1"></i>In Progress
+                                                </span>
+                                            {% elif booking.status == 'completed' %}
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2">
+                                                    <i class="fas fa-check-double me-1"></i>Completed
+                                                </span>
+                                            {% elif booking.status == 'cancelled' %}
+                                                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2">
+                                                    <i class="fas fa-times-circle me-1"></i>Cancelled
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if booking.payment_status == 'paid' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Paid
+                                                </span>
+                                            {% elif booking.payment_status == 'pending' %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i>Pending
+                                                </span>
+                                                {% if booking.status != 'cancelled' %}
+                                                    <a href="{% url 'payments:checkout' booking.id %}" class="btn btn-sm btn-primary mt-1">
+                                                        Pay Now
+                                                    </a>
+                                                {% endif %}
+                                            {% elif booking.payment_status == 'failed' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-exclamation-circle me-1"></i>Failed
+                                                </span>
+                                            {% elif booking.payment_status == 'refunded' %}
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-undo me-1"></i>Refunded
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong class="text-primary">KSh {{ booking.service.price }}</strong>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="{% url 'bookings:detail' booking.id %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if booking.status == 'pending' or booking.status == 'confirmed' %}
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmCancel('{{ booking.id }}')" title="Cancel Booking">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                {% endif %}
+                                                {% if booking.status == 'completed' and not booking.feedback_given %}
+                                                    <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#feedbackModal{{ booking.id }}" title="Leave Feedback">
+                                                        <i class="fas fa-star"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Feedback Modal for this booking -->
+                                    {% if booking.status == 'completed' and not booking.feedback_given %}
+                                    <div class="modal fade" id="feedbackModal{{ booking.id }}" tabindex="-1" aria-labelledby="feedbackModalLabel{{ booking.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-primary text-white">
+                                                    <h5 class="modal-title" id="feedbackModalLabel{{ booking.id }}">
+                                                        <i class="fas fa-star me-2"></i>Rate Your Experience
+                                                    </h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form method="post" action="{% url 'services:feedback' booking.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <p class="mb-1"><strong>Service:</strong> {{ booking.service.name }}</p>
+                                                            <p class="mb-1"><strong>Date:</strong> {{ booking.date|date:"M d, Y" }}</p>
+                                                            <p><strong>Technician:</strong> {{ booking.technician.get_full_name|default:"Not assigned" }}</p>
+                                                        </div>
+                                                        
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold">Your Rating</label>
+                                                            <div class="rating-stars text-center">
+                                                                {% for i in "12345"|make_list %}
+                                                                    <i class="far fa-star fa-2x rating-star" data-rating="{{ forloop.counter }}" style="cursor: pointer; margin: 0 5px;" onclick="setRating(this, {{ forloop.counter }})"></i>
+                                                                {% endfor %}
+                                                            </div>
+                                                            <input type="hidden" name="rating" id="rating-input-{{ booking.id }}" required>
+                                                            <div class="rating-text text-center mt-2 text-muted" id="rating-text-{{ booking.id }}">
+                                                                Click to rate
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold">Your Review</label>
+                                                            <textarea name="comment" class="form-control" rows="4" placeholder="Tell us about your experience with this service..." required></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-calendar-times fa-4x text-muted"></i>
+                            </div>
+                            <h4>No Bookings Found</h4>
+                            <p class="text-muted mb-4">You haven't made any bookings yet or no bookings match your filters.</p>
+                            <a href="{% url 'services:list' %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plus-circle me-2"></i>Book Your First Service
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    {% if bookings %}
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50">Total Bookings</h6>
+                    <h3 class="text-white">{{ bookings.count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50">Completed</h6>
+                    <h3 class="text-white">{{ completed_count|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50">Pending</h6>
+                    <h3 class="text-white">{{ pending_count|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50">Total Spent</h6>
+                    <h3 class="text-white">KSh {{ total_spent|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.rating-star {
+    color: #ffc107;
+    transition: all 0.2s ease;
+}
+
+.rating-star:hover {
+    transform: scale(1.2);
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-group .btn {
+    padding: 0.25rem 0.5rem;
+}
+</style>
+
+<script>
+function confirmCancel(bookingId) {
+    if (confirm('Are you sure you want to cancel this booking?')) {
+        // Show loading state
+        const btn = event.target;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+        
+        // Redirect after a short delay
+        setTimeout(() => {
+            window.location.href = "{% url 'bookings:cancel' 0 %}".replace('0', bookingId);
+        }, 500);
+    }
+}
+
+function setRating(element, rating) {
+    const modal = element.closest('.modal');
+    const ratingInput = modal.querySelector('[id^="rating-input"]');
+    const ratingText = modal.querySelector('[id^="rating-text"]');
+    
+    // Reset all stars in this modal
+    modal.querySelectorAll('.rating-star').forEach(star => {
+        star.classList.remove('fas');
+        star.classList.add('far');
+    });
+    
+    // Set selected stars
+    for (let i = 1; i <= rating; i++) {
+        modal.querySelector(`.rating-star[data-rating="${i}"]`).classList.remove('far');
+        modal.querySelector(`.rating-star[data-rating="${i}"]`).classList.add('fas');
+    }
+    
+    // Set input value
+    ratingInput.value = rating;
+    
+    // Update text
+    const ratings = {
+        1: 'Poor',
+        2: 'Fair',
+        3: 'Good',
+        4: 'Very Good',
+        5: 'Excellent'
+    };
+    ratingText.textContent = ratings[rating];
+}
+</script>
+{% endblock %}
