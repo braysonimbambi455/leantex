@@ -80,8 +80,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'leantex.wsgi.application'
 
 # Database Configuration - PostgreSQL
+import dj_database_url
+import os
+
 DATABASES = {
-    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+    'default': dj_database_url.config(
+        default='postgresql://postgres:brayson455@localhost:5432/leantex_db',
+        conn_max_age=600
+    )
 }
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
