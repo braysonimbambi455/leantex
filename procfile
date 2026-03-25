@@ -1,1 +1,1 @@
-gunicorn leantex.wsgi:application
+gunicorn leantex.leantex.wsgi:application
