@@ -10,7 +10,6 @@ from .create_admin_view import create_admin  # Add this import
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('create-admin/', create_admin, name='create_admin'),  # Add this line
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
     path('services/', include('services.urls')),
     path('bookings/', include('bookings.urls')),
