@@ -163,18 +163,3 @@ AUTHENTICATION_BACKENDS = (
 'django.contrib.auth.backends.ModelBackend',
 'allauth.account.auth_backends.AuthenticationBackend',
 )
-# Create admin user automatically on deploy (remove after first deploy)
-import os
-if not os.environ.get('RENDER') == 'False':
-    try:
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        if not User.objects.filter(username='admin').exists():
-            User.objects.create_superuser(
-                username='admin',
-                email='braysonimbambi455@gmail.com',
-                password='admin123'
-            )
-            print("Admin user created")
-    except:
-        pass
