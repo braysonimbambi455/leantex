@@ -17,12 +17,12 @@
                             </h2>
                             <p class="mb-0">
                                 <i class="fas fa-user me-2"></i>{{ user.get_full_name|default:user.username }} | 
-                                <i class="fas fa-id-card ms-3 me-2"></i>ID: TEC{{ user.id|stringformat:"03d" }}
+                                <i class="fas fa-id-card ms-3 me-2"></i>ID: TECH{{ user.id|stringformat:"03d" }}
                             </p>
                         </div>
                         <div class="col-lg-4 text-lg-end">
                             <span class="badge bg-white text-info px-3 py-2">
-                                <i class="fas fa-calendar me-2"></i>{{ request.user.profile.phone_number|default:"Phone not set" }}
+                                <i class="fas fa-calendar me-2"></i>{{ today_date|date:"l, F d, Y" }}
                             </span>
                         </div>
                     </div>
@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <!-- Statistics -->
+    <!-- Statistics Cards -->
     <div class="row g-4 mb-4">
         <div class="col-xl-3 col-md-6">
             <div class="card bg-primary text-white">
@@ -66,7 +66,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="text-white-50">Pending Jobs</h6>
+                            <h6 class="text-white-50">Upcoming Jobs</h6>
                             <h3 class="text-white">{{ upcoming_bookings|length }}</h3>
                         </div>
                         <i class="fas fa-clock fa-3x opacity-50"></i>
@@ -80,8 +80,8 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="text-white-50">This Month</h6>
-                            <h3 class="text-white">{{ monthly_completed }}</h3>
+                            <h6 class="text-white-50">Total Completed</h6>
+                            <h3 class="text-white">{{ total_completed }}</h3>
                         </div>
                         <i class="fas fa-chart-line fa-3x opacity-50"></i>
                     </div>
@@ -90,7 +90,7 @@
         </div>
     </div>
 
-    <!-- Today's Schedule -->
+    <!-- Dashboard Tabs -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow">
@@ -98,7 +98,7 @@
                     <ul class="nav nav-tabs card-header-tabs" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" data-bs-toggle="tab" href="#today">
-                                <i class="fas fa-sun me-2"></i>Today's Schedule
+                                <i class="fas fa-sun me-2"></i>Today's Jobs
                                 {% if today_bookings %}
                                     <span class="badge bg-primary ms-2">{{ today_bookings|length }}</span>
                                 {% endif %}
@@ -121,29 +121,34 @@
                 </div>
                 <div class="card-body">
                     <div class="tab-content">
-                        <!-- Today's Jobs Tab -->
+                        
+                        <!-- TODAY'S JOBS TAB -->
                         <div class="tab-pane fade show active" id="today">
                             {% if today_bookings %}
                                 <div class="row">
                                     {% for booking in today_bookings %}
                                         <div class="col-md-6 mb-3">
-                                            <div class="card border-0 shadow-sm">
+                                            <div class="card border-0 shadow-sm job-card" data-booking-id="{{ booking.id }}">
                                                 <div class="card-body">
                                                     <div class="d-flex justify-content-between align-items-start mb-3">
                                                         <div>
                                                             <h5 class="mb-1">{{ booking.service.name }}</h5>
                                                             <p class="text-muted mb-0">
                                                                 <i class="far fa-clock me-1"></i>{{ booking.time|time:"h:i A" }}
+                                                                <span class="mx-2">•</span>
+                                                                <i class="fas fa-hourglass-half me-1"></i>{{ booking.service.duration }} min
                                                             </p>
                                                         </div>
-                                                        <span class="badge bg-{% if booking.status == 'in_progress' %}info{% elif booking.status == 'assigned' %}warning{% else %}success{% endif %} px-3 py-2">
+                                                        <span class="badge status-badge-{{ booking.status }} px-3 py-2">
+                                                            <i class="fas {% if booking.status == 'assigned' %}fa-user-check{% elif booking.status == 'in_progress' %}fa-spinner fa-spin{% else %}fa-check-circle{% endif %} me-1"></i>
                                                             {{ booking.get_status_display }}
                                                         </span>
                                                     </div>
                                                     
+                                                    <!-- Customer Details -->
                                                     <div class="mb-3">
                                                         <div class="row g-2">
-                                                            <div class="col-6">
+                                                            <div class="col-12">
                                                                 <small class="text-muted d-block">Customer</small>
                                                                 <strong>{{ booking.customer_name }}</strong>
                                                             </div>
@@ -151,33 +156,42 @@
                                                                 <small class="text-muted d-block">Phone</small>
                                                                 <strong>{{ booking.customer_phone }}</strong>
                                                             </div>
-                                                            <div class="col-12 mt-2">
-                                                                <small class="text-muted d-block">Location</small>
-                                                                <strong>{{ booking.customer_address|default:"Address not provided" }}</strong>
+                                                            <div class="col-6">
+                                                                <small class="text-muted d-block">Email</small>
+                                                                <strong>{{ booking.customer_email }}</strong>
                                                             </div>
+                                                            {% if booking.customer_address %}
+                                                                <div class="col-12 mt-2">
+                                                                    <small class="text-muted d-block">Location</small>
+                                                                    <strong>{{ booking.customer_address }}</strong>
+                                                                </div>
+                                                            {% endif %}
                                                         </div>
                                                     </div>
                                                     
+                                                    <!-- Special Instructions -->
                                                     {% if booking.notes %}
                                                         <div class="alert alert-info py-2 mb-3">
-                                                            <small><i class="fas fa-info-circle me-1"></i>{{ booking.notes }}</small>
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            <strong>Special Instructions:</strong> {{ booking.notes }}
                                                         </div>
                                                     {% endif %}
                                                     
+                                                    <!-- Action Buttons -->
                                                     <div class="d-flex justify-content-between align-items-center">
                                                         <div>
                                                             <span class="badge bg-light text-dark">
-                                                                Booking #{{ booking.booking_number }}
+                                                                <i class="fas fa-hashtag me-1"></i>{{ booking.booking_number }}
                                                             </span>
                                                         </div>
                                                         <div class="btn-group">
                                                             {% if booking.status == 'assigned' %}
-                                                                <button class="btn btn-sm btn-success" onclick="updateStatus({{ booking.id }}, 'start')">
+                                                                <button class="btn btn-sm btn-success" onclick="startJob({{ booking.id }})">
                                                                     <i class="fas fa-play me-1"></i>Start Job
                                                                 </button>
                                                             {% elif booking.status == 'in_progress' %}
-                                                                <button class="btn btn-sm btn-primary" onclick="updateStatus({{ booking.id }}, 'complete')">
-                                                                    <i class="fas fa-check me-1"></i>Complete
+                                                                <button class="btn btn-sm btn-primary" onclick="completeJob({{ booking.id }})">
+                                                                    <i class="fas fa-check me-1"></i>Complete Job
                                                                 </button>
                                                             {% endif %}
                                                             <button class="btn btn-sm btn-outline-secondary" onclick="viewDetails({{ booking.id }})">
@@ -194,12 +208,12 @@
                                 <div class="text-center py-5">
                                     <i class="fas fa-calendar-check fa-4x text-muted mb-3"></i>
                                     <h5>No jobs scheduled for today</h5>
-                                    <p class="text-muted">Enjoy your day or check upcoming assignments</p>
+                                    <p class="text-muted">You're all caught up! Check upcoming jobs for future assignments.</p>
                                 </div>
                             {% endif %}
                         </div>
                         
-                        <!-- Upcoming Jobs Tab -->
+                        <!-- UPCOMING JOBS TAB -->
                         <div class="tab-pane fade" id="upcoming">
                             {% if upcoming_bookings %}
                                 <div class="table-responsive">
@@ -228,13 +242,13 @@
                                                         {{ booking.customer_name }}<br>
                                                         <small class="text-muted">{{ booking.customer_phone }}</small>
                                                     </td>
-                                                    <td>{{ booking.customer_address|truncatechars:30 }}</td>
+                                                    <td>{{ booking.customer_address|truncatechars:30|default:"Not provided" }}</td>
                                                     <td>
                                                         <span class="badge bg-warning">{{ booking.get_status_display }}</span>
                                                     </td>
                                                     <td>
                                                         <button class="btn btn-sm btn-outline-primary" onclick="viewDetails({{ booking.id }})">
-                                                            <i class="fas fa-eye"></i>
+                                                            <i class="fas fa-eye"></i> View
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -243,16 +257,20 @@
                                     </table>
                                 </div>
                             {% else %}
-                                <p class="text-center text-muted py-4">No upcoming jobs</p>
+                                <div class="text-center py-5">
+                                    <i class="fas fa-calendar-alt fa-4x text-muted mb-3"></i>
+                                    <h5>No upcoming jobs</h5>
+                                    <p class="text-muted">You have no future assignments at this time.</p>
+                                </div>
                             {% endif %}
                         </div>
                         
-                        <!-- Completed Jobs Tab -->
+                        <!-- COMPLETED JOBS TAB -->
                         <div class="tab-pane fade" id="completed">
                             {% if completed_bookings %}
                                 <div class="list-group">
                                     {% for booking in completed_bookings %}
-                                        <div class="list-group-item">
+                                        <div class="list-group-item list-group-item-action">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
                                                     <h6 class="mb-1">{{ booking.service.name }}</h6>
@@ -260,14 +278,33 @@
                                                         <i class="far fa-calendar me-1"></i>{{ booking.date|date:"M d, Y" }}
                                                         <i class="far fa-clock ms-2 me-1"></i>{{ booking.time|time:"h:i A" }}
                                                     </small>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-user me-1"></i>{{ booking.customer_name }}
+                                                    </small>
                                                 </div>
-                                                <span class="badge bg-success">Completed</span>
+                                                <div class="text-end">
+                                                    <span class="badge bg-success mb-1">Completed</span>
+                                                    <br>
+                                                    <button class="btn btn-sm btn-outline-secondary mt-1" onclick="viewDetails({{ booking.id }})">
+                                                        <i class="fas fa-eye"></i> Details
+                                                    </button>
+                                                </div>
                                             </div>
+                                            {% if booking.completion_notes %}
+                                                <div class="mt-2 p-2 bg-light rounded">
+                                                    <small><i class="fas fa-sticky-note me-1"></i> {{ booking.completion_notes }}</small>
+                                                </div>
+                                            {% endif %}
                                         </div>
                                     {% endfor %}
                                 </div>
                             {% else %}
-                                <p class="text-center text-muted py-4">No completed jobs yet</p>
+                                <div class="text-center py-5">
+                                    <i class="fas fa-check-circle fa-4x text-muted mb-3"></i>
+                                    <h5>No completed jobs yet</h5>
+                                    <p class="text-muted">Completed jobs will appear here once you finish them.</p>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
@@ -276,88 +313,50 @@
         </div>
     </div>
 
-    <!-- Quick Stats and Map -->
+    <!-- Performance Stats -->
     <div class="row g-4">
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             <div class="card shadow">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-chart-pie text-primary me-2"></i>Performance Stats
+                        <i class="fas fa-chart-line text-primary me-2"></i>Weekly Performance
                     </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="performanceChart" height="200"></canvas>
-                    
-                    <hr>
-                    
-                    <div class="mt-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>On-Time Completion</span>
-                            <span class="fw-bold">98%</span>
-                        </div>
-                        <div class="progress mb-3" style="height: 8px;">
-                            <div class="progress-bar bg-success" style="width: 98%"></div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Customer Rating</span>
-                            <span class="fw-bold">4.8/5.0</span>
-                        </div>
-                        <div class="progress mb-3" style="height: 8px;">
-                            <div class="progress-bar bg-warning" style="width: 96%"></div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Jobs This Week</span>
-                            <span class="fw-bold">{{ weekly_count }}/{{ weekly_target }}</span>
-                        </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-info" style="width: {% widthratio weekly_count weekly_target 100 %}%"></div>
-                        </div>
-                    </div>
+                    <canvas id="weeklyChart" height="200"></canvas>
                 </div>
             </div>
         </div>
         
-        <div class="col-lg-8">
+        <div class="col-lg-6">
             <div class="card shadow">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-map-marker-alt text-primary me-2"></i>Today's Route
+                        <i class="fas fa-star text-warning me-2"></i>Customer Ratings
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div id="routeMap" style="height: 300px; background: #f8f9fa;">
-                        <!-- Map would be integrated here with actual locations -->
-                        <div class="h-100 d-flex align-items-center justify-content-center">
-                            <div class="text-center">
-                                <i class="fas fa-map-marked-alt fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Map integration would show your route here</p>
-                                <small class="text-muted">Total distance: ~15 km | Estimated time: 4.5 hours</small>
-                            </div>
+                    <div class="text-center mb-3">
+                        <span class="display-4 fw-bold text-warning">{{ avg_rating|default:"0" }}</span>
+                        <span class="text-muted">/5.0</span>
+                        <div class="mt-2">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= avg_rating|default:0 %}
+                                    <i class="fas fa-star text-warning fa-lg"></i>
+                                {% else %}
+                                    <i class="far fa-star text-warning fa-lg"></i>
+                                {% endif %}
+                            {% endfor %}
                         </div>
+                        <p class="text-muted mt-2">Based on {{ total_ratings|default:"0" }} customer reviews</p>
                     </div>
                     
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <h6>Next Stop</h6>
-                            {% if today_bookings.0 %}
-                                <div class="bg-light p-3 rounded">
-                                    <strong>{{ today_bookings.0.customer_name }}</strong><br>
-                                    <small>{{ today_bookings.0.customer_address }}</small><br>
-                                    <small class="text-primary">Arrival: {{ today_bookings.0.time|time:"h:i A" }}</small>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            <h6>Tools Needed</h6>
-                            <div class="bg-light p-3 rounded">
-                                <span class="badge bg-info me-1">WiFi Tester</span>
-                                <span class="badge bg-info me-1">CCTV Kit</span>
-                                <span class="badge bg-info me-1">Laptop Tools</span>
-                                <span class="badge bg-info me-1">Cables</span>
-                            </div>
-                        </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-success" style="width: {{ on_time_rate|default:"95" }}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>On-Time Completion Rate</span>
+                        <span class="fw-bold">{{ on_time_rate|default:"95" }}%</span>
                     </div>
                 </div>
             </div>
@@ -365,43 +364,38 @@
     </div>
 </div>
 
-<!-- Status Update Modal -->
-<div class="modal fade" id="statusModal" tabindex="-1">
+<!-- Completion Notes Modal -->
+<div class="modal fade" id="completionModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Update Job Status</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle me-2"></i>Complete Job
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form id="statusForm" method="post">
+            <form id="completeJobForm" method="post">
                 {% csrf_token %}
+                <input type="hidden" name="booking_id" id="completeBookingId">
                 <div class="modal-body">
-                    <input type="hidden" name="booking_id" id="modalBookingId">
-                    <input type="hidden" name="action" id="modalAction">
+                    <p>Are you sure you want to mark this job as completed?</p>
                     
-                    <div id="startJobContent">
-                        <p>Start this job now?</p>
-                        <div class="mb-3">
-                            <label>Estimated Completion Time</label>
-                            <input type="time" name="completion_time" class="form-control" value="{{ now|time:'H:i' }}">
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Completion Notes</label>
+                        <textarea name="completion_notes" id="completionNotes" class="form-control" rows="4" 
+                                  placeholder="Enter any notes about the service (e.g., parts used, issues resolved, customer feedback...)"></textarea>
+                        <small class="text-muted">Optional but recommended for record keeping.</small>
                     </div>
                     
-                    <div id="completeJobContent" style="display: none;">
-                        <p>Mark this job as completed?</p>
-                        <div class="mb-3">
-                            <label>Completion Notes</label>
-                            <textarea name="notes" class="form-control" rows="3" placeholder="Any notes about the service..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label>Parts Used (if any)</label>
-                            <input type="text" name="parts" class="form-control" placeholder="e.g., cables, connectors">
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Parts Used (if any)</label>
+                        <input type="text" name="parts_used" id="partsUsed" class="form-control" 
+                               placeholder="e.g., HDMI cable, 16GB RAM, replacement screen">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Confirm</button>
+                    <button type="submit" class="btn btn-success">Confirm Complete</button>
                 </div>
             </form>
         </div>
@@ -413,7 +407,9 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
-                <h5 class="modal-title">Job Details</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle me-2"></i>Job Details
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="detailsContent">
@@ -431,68 +427,161 @@
     background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
 }
 
-.card {
-    border: none;
-    border-radius: 10px;
+.job-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.job-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+}
+
+.status-badge-assigned {
+    background-color: #ffc10720;
+    color: #856404;
+    border: 1px solid #ffc10740;
+}
+
+.status-badge-in_progress {
+    background-color: #17a2b820;
+    color: #0c5460;
+    border: 1px solid #17a2b840;
+}
+
+.status-badge-completed {
+    background-color: #28a74520;
+    color: #155724;
+    border: 1px solid #28a74540;
 }
 
 .table th {
     border-top: none;
     font-weight: 600;
     color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.75rem;
 }
 
-.progress {
-    border-radius: 10px;
+.btn-group .btn {
+    padding: 0.25rem 0.75rem;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 15px;
+}
+
+.modal-header {
+    border-radius: 15px 15px 0 0;
 }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-function updateStatus(bookingId, action) {
-    document.getElementById('modalBookingId').value = bookingId;
-    document.getElementById('modalAction').value = action;
-    
-    if (action === 'start') {
-        document.getElementById('startJobContent').style.display = 'block';
-        document.getElementById('completeJobContent').style.display = 'none';
-    } else {
-        document.getElementById('startJobContent').style.display = 'none';
-        document.getElementById('completeJobContent').style.display = 'block';
+// Start Job Function
+function startJob(bookingId) {
+    if (confirm('Are you sure you want to start this job?')) {
+        const btn = event.target;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+        btn.disabled = true;
+        
+        fetch(`/dashboard/technician/start-job/${bookingId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            alert('Error starting job: ' + error);
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        });
     }
-    
-    new bootstrap.Modal(document.getElementById('statusModal')).show();
 }
 
-function viewDetails(bookingId) {
-    // In a real application, this would fetch details via AJAX
-    // For now, redirect to booking detail page
-    window.location.href = "{% url 'bookings:detail' 0 %}".replace('0', bookingId);
+// Complete Job Function
+function completeJob(bookingId) {
+    document.getElementById('completeBookingId').value = bookingId;
+    document.getElementById('completionNotes').value = '';
+    document.getElementById('partsUsed').value = '';
+    new bootstrap.Modal(document.getElementById('completionModal')).show();
 }
 
-document.getElementById('statusForm').addEventListener('submit', function(e) {
+// Submit Completion Form
+document.getElementById('completeJobForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    // Submit form via AJAX or redirect
-    var bookingId = document.getElementById('modalBookingId').value;
-    var action = document.getElementById('modalAction').value;
+    const bookingId = document.getElementById('completeBookingId').value;
+    const notes = document.getElementById('completionNotes').value;
+    const parts = document.getElementById('partsUsed').value;
     
-    if (action === 'complete') {
-        window.location.href = "{% url 'dashboard:complete_job' 0 %}".replace('0', bookingId);
-    } else {
-        window.location.href = "{% url 'dashboard:start_job' 0 %}".replace('0', bookingId);
-    }
+    const btn = document.querySelector('#completionModal .btn-success');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    btn.disabled = true;
+    
+    fetch(`/dashboard/technician/complete-job/${bookingId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ notes: notes, parts: parts })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    })
+    .catch(error => {
+        alert('Error completing job: ' + error);
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    });
 });
 
-// Performance Chart
-var ctx = document.getElementById('performanceChart').getContext('2d');
-var performanceChart = new Chart(ctx, {
-    type: 'doughnut',
+// View Job Details
+function viewDetails(bookingId) {
+    fetch(`/bookings/${bookingId}/`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('detailsContent').innerHTML = html;
+            new bootstrap.Modal(document.getElementById('detailsModal')).show();
+        })
+        .catch(error => {
+            window.location.href = `/bookings/${bookingId}/`;
+        });
+}
+
+// Weekly Performance Chart
+const ctx = document.getElementById('weeklyChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
     data: {
-        labels: ['Completed', 'In Progress', 'Pending'],
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [{
-            data: [{{ completed_today }}, {{ today_bookings|length }} - {{ completed_today }}, {{ upcoming_bookings|length }}],
-            backgroundColor: ['#28a745', '#17a2b8', '#ffc107'],
-            borderWidth: 0
+            label: 'Jobs Completed',
+            data: {{ weekly_data|default:"[0,0,0,0,0,0,0]" }},
+            borderColor: '#17a2b8',
+            backgroundColor: 'rgba(23, 162, 184, 0.1)',
+            tension: 0.3,
+            fill: true
         }]
     },
     options: {
@@ -502,15 +591,13 @@ var performanceChart = new Chart(ctx, {
             legend: {
                 position: 'bottom'
             }
-        },
-        cutout: '70%'
+        }
     }
 });
 
-// Initialize tooltips
-var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
-});
+// Auto-refresh every 2 minutes
+setTimeout(function() {
+    location.reload();
+}, 120000);
 </script>
 {% endblock %}

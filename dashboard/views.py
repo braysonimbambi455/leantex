@@ -5,11 +5,15 @@ from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
 from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from bookings.models import Booking
 from services.models import Service, Testimonial
 from accounts.models import User, Profile
 from payments.models import Payment
 from datetime import timedelta, datetime
+import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -99,44 +103,67 @@ def technician_dashboard(request):
         return redirect('dashboard:home')
     
     today = timezone.now().date()
+    user = request.user
     
     # Get today's bookings
     today_bookings = Booking.objects.filter(
-        technician=request.user,
+        technician=user,
         date=today
     ).select_related('service', 'customer').order_by('time')
     
     # Get upcoming bookings
     upcoming_bookings = Booking.objects.filter(
-        technician=request.user,
+        technician=user,
         date__gt=today,
         status__in=['assigned', 'confirmed']
     ).select_related('service', 'customer').order_by('date', 'time')
     
-    # Get completed bookings
+    # Get completed bookings (last 10)
     completed_bookings = Booking.objects.filter(
-        technician=request.user,
+        technician=user,
         status='completed'
     ).select_related('service').order_by('-date')[:10]
     
     # Statistics
     completed_today = Booking.objects.filter(
-        technician=request.user,
+        technician=user,
         date=today,
         status='completed'
     ).count()
     
     monthly_completed = Booking.objects.filter(
-        technician=request.user,
+        technician=user,
         status='completed',
         date__month=today.month,
         date__year=today.year
     ).count()
     
+    total_completed = Booking.objects.filter(
+        technician=user,
+        status='completed'
+    ).count()
+    
+    # Calculate average rating from testimonials
+    from services.models import Testimonial
+    testimonials = Testimonial.objects.filter(service__bookings__technician=user, is_approved=True)
+    avg_rating = testimonials.aggregate(Avg('rating'))['rating__avg'] or 0
+    total_ratings = testimonials.count()
+    
+    # Weekly data for chart
+    weekly_data = []
+    for i in range(7):
+        day = today - timedelta(days=6-i)
+        count = Booking.objects.filter(
+            technician=user,
+            status='completed',
+            date=day
+        ).count()
+        weekly_data.append(count)
+    
     # Weekly stats
     week_start = today - timedelta(days=today.weekday())
     weekly_count = Booking.objects.filter(
-        technician=request.user,
+        technician=user,
         status='completed',
         date__gte=week_start
     ).count()
@@ -148,11 +175,129 @@ def technician_dashboard(request):
         'completed_bookings': completed_bookings,
         'completed_today': completed_today,
         'monthly_completed': monthly_completed,
+        'total_completed': total_completed,
         'weekly_count': weekly_count,
         'weekly_target': weekly_target,
+        'avg_rating': round(avg_rating, 1),
+        'total_ratings': total_ratings,
+        'weekly_data': weekly_data,
+        'on_time_rate': 98,  # Example - calculate based on actual data
+        'today_date': today,
         'now': timezone.now(),
     }
     return render(request, 'dashboard/technician_dashboard.html', context)
+
+
+@login_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def technician_start_job(request, booking_id):
+    """
+    Start a job (technician only) - AJAX endpoint
+    """
+    if request.user.profile.role != 'technician':
+        return JsonResponse({'success': False, 'error': 'Unauthorized access'}, status=403)
+    
+    try:
+        booking = get_object_or_404(Booking, id=booking_id, technician=request.user)
+        
+        if booking.status == 'assigned':
+            booking.status = 'in_progress'
+            booking.save()
+            
+            # Log the action
+            logger.info(f"Technician {request.user.username} started job {booking.booking_number}")
+            
+            return JsonResponse({'success': True, 'message': 'Job started successfully'})
+        else:
+            return JsonResponse({'success': False, 'error': f'Cannot start job with status: {booking.get_status_display()}'})
+    
+    except Booking.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Booking not found'})
+    except Exception as e:
+        logger.error(f"Error starting job: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def technician_complete_job(request, booking_id):
+    """
+    Complete a job (technician only) - AJAX endpoint with notes
+    """
+    if request.user.profile.role != 'technician':
+        return JsonResponse({'success': False, 'error': 'Unauthorized access'}, status=403)
+    
+    try:
+        booking = get_object_or_404(Booking, id=booking_id, technician=request.user)
+        
+        if booking.status == 'in_progress':
+            booking.status = 'completed'
+            
+            # Save completion notes if provided
+            try:
+                data = json.loads(request.body)
+                notes = data.get('notes', '')
+                parts = data.get('parts', '')
+                
+                if notes or parts:
+                    completion_log = f"\n\n--- Completion Report ---\nDate: {timezone.now().strftime('%Y-%m-%d %H:%M')}\n"
+                    if notes:
+                        completion_log += f"Notes: {notes}\n"
+                    if parts:
+                        completion_log += f"Parts Used: {parts}\n"
+                    
+                    if booking.notes:
+                        booking.notes += completion_log
+                    else:
+                        booking.notes = completion_log
+                        
+            except json.JSONDecodeError:
+                pass
+            
+            booking.save()
+            
+            # Notify customer via email (optional)
+            try:
+                from django.core.mail import send_mail
+                subject = f'Job Completed - Booking {booking.booking_number}'
+                message = f"""
+Dear {booking.customer_name},
+
+Your service has been completed by {request.user.get_full_name() or request.user.username}.
+
+Booking Details:
+- Service: {booking.service.name}
+- Date: {booking.date}
+
+Thank you for choosing Leantex! We would love to hear your feedback.
+Please log in to your account to leave a review.
+
+Best regards,
+Leantex Team
+                """
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [booking.customer_email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.error(f"Error sending completion notification: {e}")
+            
+            logger.info(f"Technician {request.user.username} completed job {booking.booking_number}")
+            
+            return JsonResponse({'success': True, 'message': 'Job completed successfully'})
+        else:
+            return JsonResponse({'success': False, 'error': f'Cannot complete job with status: {booking.get_status_display()}'})
+    
+    except Booking.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Booking not found'})
+    except Exception as e:
+        logger.error(f"Error completing job: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 # ==================== ADMIN DASHBOARD ====================
@@ -401,12 +546,12 @@ def admin_auto_assign_all(request):
     return redirect('dashboard:manage_bookings')
 
 
-# ==================== TECHNICIAN JOB ACTIONS ====================
+# ==================== TECHNICIAN JOB ACTIONS (Legacy) ====================
 
 @login_required
 def technician_accept_booking(request, booking_id):
     """
-    Technician accepts an assigned booking
+    Technician accepts an assigned booking (redirect-based)
     """
     if not request.user.profile.role == 'technician':
         messages.error(request, 'Access denied.')
@@ -453,7 +598,7 @@ def technician_accept_booking(request, booking_id):
 @login_required
 def start_job(request, booking_id):
     """
-    Technician starts a job
+    Technician starts a job (redirect-based)
     """
     if request.method == 'POST' and request.user.profile.role == 'technician':
         booking = get_object_or_404(Booking, id=booking_id, technician=request.user)
@@ -466,7 +611,7 @@ def start_job(request, booking_id):
 @login_required
 def complete_job(request, booking_id):
     """
-    Technician completes a job
+    Technician completes a job (redirect-based)
     """
     if request.method == 'POST' and request.user.profile.role == 'technician':
         booking = get_object_or_404(Booking, id=booking_id, technician=request.user)
