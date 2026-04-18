@@ -7,7 +7,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.contrib.auth import views as auth_views
-from .create_admin import create_admin  # Add this at the top with other imports
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,8 +16,6 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('payments/', include('payments.urls')),
-    path('create-admin/', create_admin, name='create_admin'),  # Add this line
-    # ... your existing URLs
     
     # Password Reset URLs (Django built-in)
     path('password-reset/',
