@@ -88,7 +88,7 @@ import os
 DATABASES = {
     'default': dj_database_url.config(
         default='postgresql://postgres:brayson455@localhost:5432/leantex_db',
-        conn_max_age=600
+        conn_max_age=600,
         ssl_require=True  # Add this line
     )
 }
