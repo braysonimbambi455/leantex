@@ -4,14 +4,582 @@
 {% block title %}My Dashboard - Customer{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Welcome Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-gradient-primary text-white">
+<style>
+    /* Modern Dashboard Styles */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        --warning-gradient: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        --info-gradient: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+    }
+
+    .dashboard-card {
+        border: none;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 35px -10px rgba(0,0,0,0.15);
+    }
+
+    .dashboard-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .stat-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+    }
+
+    .booking-card {
+        border: none;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        background: white;
+        margin-bottom: 1rem;
+    }
+
+    .booking-card:hover {
+        box-shadow: 0 10px 30px -12px rgba(0,0,0,0.1);
+        transform: translateX(5px);
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-confirmed { background: #d4edda; color: #155724; }
+    .status-assigned { background: #cce5ff; color: #004085; }
+    .status-in_progress { background: #d1ecf1; color: #0c5460; }
+    .status-completed { background: #d4edda; color: #155724; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+
+    .timeline-item {
+        position: relative;
+        padding: 1rem 0 1rem 2rem;
+        border-left: 2px solid #e9ecef;
+        margin-left: 1rem;
+    }
+
+    .timeline-item:last-child {
+        border-left-color: transparent;
+    }
+
+    .timeline-icon {
+        position: absolute;
+        left: -12px;
+        top: 1rem;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .timeline-icon i {
+        font-size: 0.7rem;
+    }
+
+    .timeline-icon.completed { border-color: #28a745; background: #28a745; color: white; }
+    .timeline-icon.in-progress { border-color: #17a2b8; background: #17a2b8; color: white; }
+    .timeline-icon.pending { border-color: #ffc107; background: #ffc107; color: white; }
+
+    .quick-action-btn {
+        padding: 1rem;
+        border-radius: 16px;
+        background: #f8f9fa;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .quick-action-btn:hover {
+        background: var(--primary-gradient);
+        color: white;
+        transform: translateY(-3px);
+    }
+
+    .quick-action-btn i {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .welcome-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 24px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+
+    .rating-star {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #ffc107;
+    }
+    
+    .rating-star:hover {
+        transform: scale(1.2);
+    }
+</style>
+
+<div class="container-fluid px-4 py-4">
+    
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 fw-bold mb-2">
+                    Welcome back, {{ user.first_name|default:user.username }}! 👋
+                </h1>
+                <p class="lead mb-0 opacity-90">
+                    <i class="fas fa-calendar-alt me-2"></i>{{ user.email }}
+                </p>
+                <p class="mt-2 opacity-75">
+                    <i class="fas fa-phone me-2"></i>{{ user.profile.phone_number|default:"Add your phone number" }}
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="{% url 'services:list' %}" class="btn btn-light btn-lg rounded-pill px-4">
+                    <i class="fas fa-plus-circle me-2"></i>Book New Service
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card dashboard-card bg-white shadow-sm">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-lg-8">
-                            <h2 class="fw-bold mb-2">
-                                Welcome back
-                                {% endblock %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted text-uppercase small fw-bold">Total Bookings</span>
+                            <h2 class="mt-2 mb-0 fw-bold">{{ total_bookings|default:"0" }}</h2>
+                        </div>
+                        <div class="stat-icon bg-primary bg-opacity-10">
+                            <i class="fas fa-calendar-check text-primary fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card dashboard-card bg-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted text-uppercase small fw-bold">Completed</span>
+                            <h2 class="mt-2 mb-0 fw-bold text-success">{{ completed_bookings|default:"0" }}</h2>
+                        </div>
+                        <div class="stat-icon bg-success bg-opacity-10">
+                            <i class="fas fa-check-circle text-success fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card dashboard-card bg-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted text-uppercase small fw-bold">Pending Payment</span>
+                            <h2 class="mt-2 mb-0 fw-bold text-warning">{{ pending_payments|default:"0" }}</h2>
+                        </div>
+                        <div class="stat-icon bg-warning bg-opacity-10">
+                            <i class="fas fa-clock text-warning fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card dashboard-card bg-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted text-uppercase small fw-bold">Member Since</span>
+                            <h2 class="mt-2 mb-0 fw-bold text-info">{{ user.date_joined|date:"Y" }}</h2>
+                        </div>
+                        <div class="stat-icon bg-info bg-opacity-10">
+                            <i class="fas fa-user-clock text-info fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Appointments Section -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-header bg-white border-0 py-3 px-4">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i>Upcoming Appointments
+                    </h5>
+                </div>
+                <div class="col-auto">
+                    <a href="{% url 'bookings:list' %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            {% if upcoming_bookings %}
+                {% for booking in upcoming_bookings %}
+                <div class="booking-card shadow-sm">
+                    <div class="row align-items-center p-3">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                {% if booking.service.image %}
+                                    <img src="{{ booking.service.image.url }}" class="rounded-3 me-3" width="55" height="55" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                        <i class="fas fa-cog fa-2x text-primary"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-1 fw-bold">{{ booking.service.name }}</h6>
+                                    <small class="text-muted">KSh {{ booking.service.price }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mt-2 mt-md-0">
+                            <i class="far fa-calendar text-primary me-2"></i>{{ booking.date|date:"D, M d, Y" }}<br>
+                            <i class="far fa-clock text-primary me-2"></i>{{ booking.time|time:"h:i A" }}
+                        </div>
+                        <div class="col-md-3 mt-2 mt-md-0">
+                            {% if booking.technician %}
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success bg-opacity-10 rounded-circle p-2 me-2">
+                                        <i class="fas fa-user-cog text-success"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">Technician</small>
+                                        <div class="fw-semibold">{{ booking.technician.get_full_name|default:booking.technician.username }}</div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="status-badge status-pending">
+                                    <i class="fas fa-clock me-1"></i>Awaiting Assignment
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2 mt-2 mt-md-0 text-md-end">
+                            <span class="status-badge status-{{ booking.status }} w-100 mb-2 d-inline-block text-center">
+                                <i class="fas {% if booking.status == 'confirmed' %}fa-check-circle{% elif booking.status == 'pending' %}fa-clock{% elif booking.status == 'in_progress' %}fa-spinner fa-spin{% elif booking.status == 'completed' %}fa-check-double{% else %}fa-question-circle{% endif %} me-1"></i>
+                                {{ booking.get_status_display }}
+                            </span>
+                            {% if booking.payment_status == 'pending' %}
+                                <a href="{% url 'payments:checkout' booking.id %}" class="btn btn-sm btn-primary rounded-pill w-100 mt-1">
+                                    Pay Now
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-check fa-4x text-muted mb-3"></i>
+                    <h5>No Upcoming Appointments</h5>
+                    <p class="text-muted">Ready to book your first service?</p>
+                    <a href="{% url 'services:list' %}" class="btn btn-primary rounded-pill px-4">
+                        Browse Services
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Activity & Quick Actions -->
+    <div class="row g-4">
+        <!-- Recent Bookings Timeline -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 py-3 px-4">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-history text-primary me-2"></i>Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if past_bookings %}
+                        <div class="timeline">
+                            {% for booking in past_bookings %}
+                                <div class="timeline-item">
+                                    <div class="timeline-icon {% if booking.status == 'completed' %}completed{% elif booking.status == 'in_progress' %}in-progress{% else %}pending{% endif %}">
+                                        <i class="fas fa-{% if booking.status == 'completed' %}check{% elif booking.status == 'in_progress' %}play{% else %}clock{% endif %} fa-xs"></i>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap">
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">{{ booking.service.name }}</h6>
+                                            <p class="mb-0 text-muted small">
+                                                <i class="far fa-calendar me-1"></i>{{ booking.date|date:"M d, Y" }}
+                                                <i class="far fa-clock ms-2 me-1"></i>{{ booking.time|time:"h:i A" }}
+                                            </p>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-badge status-{{ booking.status }} mb-2">
+                                                {{ booking.get_status_display }}
+                                            </span>
+                                            <div class="mt-1">
+                                                <span class="fw-bold text-primary">KSh {{ booking.service.price }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if booking.status == 'completed' and not booking.feedback_given %}
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-warning rounded-pill" data-bs-toggle="modal" data-bs-target="#feedbackModal{{ booking.id }}">
+                                            <i class="fas fa-star me-1"></i>Leave Feedback
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-2"></i>
+                            <p class="text-muted">No recent activity</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Support -->
+        <div class="col-lg-5">
+            <!-- Quick Actions -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-3 px-4">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-bolt text-primary me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <a href="{% url 'services:list' %}" class="text-decoration-none">
+                                <div class="quick-action-btn">
+                                    <i class="fas fa-search"></i>
+                                    <span class="d-block small fw-semibold">Browse Services</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'bookings:list' %}" class="text-decoration-none">
+                                <div class="quick-action-btn">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span class="d-block small fw-semibold">My Bookings</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'payments:history' %}" class="text-decoration-none">
+                                <div class="quick-action-btn">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span class="d-block small fw-semibold">Payment History</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'accounts:profile' %}" class="text-decoration-none">
+                                <div class="quick-action-btn">
+                                    <i class="fas fa-user-edit"></i>
+                                    <span class="d-block small fw-semibold">Update Profile</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help & Support -->
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 py-3 px-4">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-headset text-primary me-2"></i>Need Help?
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-life-ring fa-3x text-primary opacity-50 mb-2"></i>
+                        <p class="text-muted small">Our support team is here to assist you</p>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item px-0 d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                <i class="fas fa-phone-alt text-primary"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Emergency Support</small>
+                                <span class="fw-semibold">+254 700 000 000</span>
+                            </div>
+                        </div>
+                        <div class="list-group-item px-0 d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                <i class="fas fa-envelope text-primary"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Email Us</small>
+                                <span class="fw-semibold">support@leantex.co.ke</span>
+                            </div>
+                        </div>
+                        <div class="list-group-item px-0 d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                <i class="fas fa-clock text-primary"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Working Hours</small>
+                                <span class="fw-semibold">Mon-Fri: 8AM - 8PM</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary w-100 rounded-pill" data-bs-toggle="modal" data-bs-target="#supportModal">
+                            <i class="fas fa-comment-dots me-2"></i>Contact Support
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+{% for booking in past_bookings %}
+    {% if not booking.feedback_given %}
+    <div class="modal fade" id="feedbackModal{{ booking.id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4">
+                <div class="modal-header bg-primary text-white border-0 rounded-top-4">
+                    <h5 class="modal-title">
+                        <i class="fas fa-star me-2"></i>Rate Your Experience
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'services:feedback' booking.id %}">
+                    {% csrf_token %}
+                    <div class="modal-body p-4">
+                        <div class="text-center mb-3">
+                            <img src="{% if booking.service.image %}{{ booking.service.image.url }}{% else %}/static/images/default-service.png{% endif %}" alt="{{ booking.service.name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px;">
+                            <h6 class="mt-2 mb-0">{{ booking.service.name }}</h6>
+                            <small class="text-muted">{{ booking.date|date:"M d, Y" }}</small>
+                        </div>
+                        
+                        <div class="mb-3 text-center">
+                            <label class="form-label fw-semibold">Your Rating</label>
+                            <div class="rating-stars">
+                                {% for i in "12345"|make_list %}
+                                    <i class="far fa-star fa-2x rating-star" data-rating="{{ forloop.counter }}" style="cursor: pointer; margin: 0 5px;" onclick="setRating(this, {{ forloop.counter }})"></i>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="rating" id="rating-input-{{ booking.id }}" required>
+                            <div class="rating-text text-center mt-2 text-muted small" id="rating-text-{{ booking.id }}">
+                                Click to rate
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Your Review</label>
+                            <textarea name="comment" class="form-control rounded-3" rows="3" placeholder="Share your experience with us..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center pb-4">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">Submit Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
+<!-- Support Modal -->
+<div class="modal fade" id="supportModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header bg-primary text-white border-0 rounded-top-4">
+                <h5 class="modal-title">
+                    <i class="fas fa-headset me-2"></i>Contact Support
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'dashboard:support' %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Subject</label>
+                        <input type="text" name="subject" class="form-control rounded-3" placeholder="What is this regarding?" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Message</label>
+                        <textarea name="message" class="form-control rounded-3" rows="4" placeholder="Please describe your issue in detail..." required></textarea>
+                    </div>
+                    <div class="alert alert-info rounded-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        We'll respond to your inquiry within 24 hours.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center pb-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function setRating(element, rating) {
+    const modal = element.closest('.modal');
+    const ratingInput = modal.querySelector('[id^="rating-input"]');
+    const ratingText = modal.querySelector('[id^="rating-text"]');
+    
+    modal.querySelectorAll('.rating-star').forEach(star => {
+        star.classList.remove('fas');
+        star.classList.add('far');
+    });
+    
+    for (let i = 1; i <= rating; i++) {
+        modal.querySelector(`.rating-star[data-rating="${i}"]`).classList.remove('far');
+        modal.querySelector(`.rating-star[data-rating="${i}"]`).classList.add('fas');
+    }
+    
+    ratingInput.value = rating;
+    
+    const ratings = {1: 'Poor', 2: 'Fair', 3: 'Good', 4: 'Very Good', 5: 'Excellent'};
+    ratingText.textContent = ratings[rating];
+}
+
+function confirmCancel(bookingId) {
+    if (confirm('Are you sure you want to cancel this booking?')) {
+        window.location.href = "{% url 'bookings:cancel' 0 %}".replace('0', bookingId);
+    }
+}
+</script>
+
+{% endblock %}
