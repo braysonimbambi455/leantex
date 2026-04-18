@@ -176,3 +176,44 @@ AUTHENTICATION_BACKENDS = (
 'django.contrib.auth.backends.ModelBackend',
 'allauth.account.auth_backends.AuthenticationBackend',
 )
+# =====================================================
+# AUTO-CREATE ADMIN ON DEPLOYMENT (REMOVE AFTER FIRST DEPLOY)
+# =====================================================
+import os
+if os.environ.get('RENDER'):
+    try:
+        from django.contrib.auth import get_user_model
+        from accounts.models import Profile
+        
+        User = get_user_model()
+        
+        # Check if admin already exists
+        if not User.objects.filter(username='admin455').exists():
+            # Create superuser with custom credentials
+            admin = User.objects.create_superuser(
+                username='admin455',
+                email='braysonimbambi455@gmail.com',
+                password='cmfbrayden455',
+                first_name='System',
+                last_name='Administrator'
+            )
+            print("✅ Admin user created successfully!")
+            print(f"   Username: admin455")
+            print(f"   Email: braysonimbambi455@gmail.com")
+            
+            # Create profile for admin
+            profile, created = Profile.objects.get_or_create(user=admin)
+            profile.phone_number = '+254793814747'
+            profile.role = 'admin'
+            profile.address = 'Nairobi'
+            profile.city = 'Nairobi'
+            profile.email_notifications = True
+            profile.sms_notifications = True
+            profile.save()
+            print("✅ Admin profile created successfully!")
+            
+        else:
+            print("ℹ️ Admin user already exists")
+            
+    except Exception as e:
+        print(f"⚠️ Could not create admin: {e}")
