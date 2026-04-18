@@ -5,8 +5,29 @@ from django.contrib import messages
 from django.db import transaction
 from .models import Profile
 
+# Define an inline admin descriptor for Profile model
+class ProfileInline(admin.StackedInline):
+    """Display Profile fields on the User admin page"""
+    model = Profile
+    can_delete = False
+    verbose_name_plural = 'Profile'
+    fields = ('phone_number', 'role', 'address', 'city', 'email_notifications', 'sms_notifications')
+
 class CustomUserAdmin(UserAdmin):
+    # Add the Profile inline to the User admin page
+    inlines = [ProfileInline]
+    
     actions = ['safe_delete_users', 'deactivate_users']
+    
+    # Optional: Add role to the list display
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_role')
+    
+    def get_role(self, obj):
+        """Display the user's role in the list view"""
+        if hasattr(obj, 'profile'):
+            return obj.profile.role
+        return 'No profile'
+    get_role.short_description = 'Role'
     
     def safe_delete_users(self, request, queryset):
         """Custom action to safely delete users"""
