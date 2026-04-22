@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Successful - Leantex{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm border-0 rounded-4 text-center">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success fa-5x"></i>
+                    </div>
+                    <h2 class="fw-bold mb-3">Payment Successful!</h2>
+                    <p class="text-muted mb-4">
+                        Your booking has been confirmed. You will receive a confirmation email shortly.
+                    </p>
+                    <div class="alert alert-light border">
+                        <strong>Booking Number:</strong> {{ booking.booking_number }}
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'dashboard:customer' %}" class="btn btn-primary rounded-pill px-4 me-2">
+                            <i class="fas fa-home me-2"></i>Go to Dashboard
+                        </a>
+                        <a href="{% url 'bookings:detail' booking.id %}" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="fas fa-eye me-2"></i>View Booking
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

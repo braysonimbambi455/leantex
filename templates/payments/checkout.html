@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Leantex{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Booking Summary -->
+        <div class="col-lg-7 mb-4 mb-lg-0">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 py-3 px-4">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-shopping-cart text-primary me-2"></i>Order Summary
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                        {% if booking.service.image %}
+                            <img src="{{ booking.service.image.url }}" class="rounded-3 me-3" width="70" height="70" style="object-fit: cover;">
+                        {% else %}
+                            <div class="bg-light rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                                <i class="fas fa-cog fa-2x text-primary"></i>
+                            </div>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-bold">{{ booking.service.name }}</h6>
+                            <p class="text-muted small mb-0">{{ booking.service.category.name }}</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold text-primary fs-5">KSh {{ booking.service.price }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <span class="text-muted">Booking Number:</span>
+                            </div>
+                            <div class="col-6 text-end">
+                                <span class="fw-semibold">{{ booking.booking_number }}</span>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <span class="text-muted">Service Date:</span>
+                            </div>
+                            <div class="col-6 text-end">
+                                <span class="fw-semibold">{{ booking.date|date:"l, F d, Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <span class="text-muted">Service Time:</span>
+                            </div>
+                            <div class="col-6 text-end">
+                                <span class="fw-semibold">{{ booking.time|time:"h:i A" }}</span>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <span class="text-muted">Duration:</span>
+                            </div>
+                            <div class="col-6 text-end">
+                                <span class="fw-semibold">{{ booking.service.duration }} minutes</span>
+                            </div>
+                        </div>
+                        {% if booking.notes %}
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <span class="text-muted">Special Instructions:</span>
+                            </div>
+                            <div class="col-6 text-end">
+                                <span class="fw-semibold text-muted small">{{ booking.notes|truncatechars:30 }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4 pt-2 border-top">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Total Amount:</strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong class="text-primary fs-4">KSh {{ booking.service.price }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Form -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 py-3 px-4">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-credit-card text-primary me-2"></i>Payment Method
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" id="paymentForm">
+                        {% csrf_token %}
+                        
+                        <!-- Payment Method Selection -->
+                        <div class="mb-4">
+                            <div class="form-check mb-2 p-3 border rounded-3">
+                                <input class="form-check-input" type="radio" name="payment_method" id="stripe" value="stripe" checked>
+                                <label class="form-check-label ms-2" for="stripe">
+                                    <i class="fab fa-stripe text-primary me-2"></i>
+                                    <strong>Credit / Debit Card (Stripe)</strong>
+                                    <span class="d-block small text-muted">Visa, Mastercard, American Express</span>
+                                </label>
+                            </div>
+                            <div class="form-check mb-2 p-3 border rounded-3">
+                                <input class="form-check-input" type="radio" name="payment_method" id="mpesa" value="mpesa">
+                                <label class="form-check-label ms-2" for="mpesa">
+                                    <i class="fas fa-mobile-alt text-success me-2"></i>
+                                    <strong>M-Pesa</strong>
+                                    <span class="d-block small text-muted">Pay with M-Pesa mobile money</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Stripe Card Details (shown by default) -->
+                        <div id="stripeForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Card Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="far fa-credit-card"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0" placeholder="4242 4242 4242 4242" id="card_number">
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold">Expiry Date</label>
+                                    <input type="text" class="form-control" placeholder="MM/YY">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold">CVV</label>
+                                    <input type="text" class="form-control" placeholder="123">
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label class="form-label fw-semibold">Cardholder Name</label>
+                                <input type="text" class="form-control" placeholder="{{ user.get_full_name|default:user.username }}">
+                            </div>
+                        </div>
+
+                        <!-- M-Pesa Form (hidden initially) -->
+                        <div id="mpesaForm" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                You will receive a prompt on your phone to complete payment.
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">M-Pesa Phone Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">+254</span>
+                                    <input type="tel" class="form-control" placeholder="712345678">
+                                </div>
+                                <small class="text-muted">Enter the phone number registered with M-Pesa</small>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border mt-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Total to Pay:</span>
+                                <strong class="text-primary fs-4">KSh {{ booking.service.price }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill">
+                                <i class="fas fa-lock me-2"></i>Complete Payment
+                            </button>
+                            <a href="{% url 'bookings:detail' booking.id %}" class="btn btn-outline-secondary rounded-pill">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Secure Payment Note -->
+            <div class="text-center mt-3">
+                <p class="text-muted small">
+                    <i class="fas fa-shield-alt text-success me-1"></i> 
+                    Secure payment processed by Stripe / M-Pesa
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle between Stripe and M-Pesa forms
+    const stripeRadio = document.getElementById('stripe');
+    const mpesaRadio = document.getElementById('mpesa');
+    const stripeForm = document.getElementById('stripeForm');
+    const mpesaForm = document.getElementById('mpesaForm');
+
+    stripeRadio.addEventListener('change', function() {
+        if (this.checked) {
+            stripeForm.style.display = 'block';
+            mpesaForm.style.display = 'none';
+        }
+    });
+
+    mpesaRadio.addEventListener('change', function() {
+        if (this.checked) {
+            stripeForm.style.display = 'none';
+            mpesaForm.style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}
