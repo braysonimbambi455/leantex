@@ -118,5 +118,264 @@
     <!-- Custom JS -->
     <script src="{% static 'js/main.js' %}"></script>
     {% block extra_js %}{% endblock %}
+    <!-- WhatsApp Floating Button -->
+<div class="whatsapp-container">
+    <!-- Chat Popup -->
+    <div class="whatsapp-popup" id="whatsappPopup">
+        <div class="whatsapp-popup-header">
+            <div class="whatsapp-header-info">
+                <div class="whatsapp-avatar">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <div>
+                    <strong>Leantex Support</strong>
+                    <small>Typically replies instantly</small>
+                </div>
+            </div>
+            <button type="button" class="whatsapp-close" onclick="closeWhatsApp()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="whatsapp-popup-body">
+            <div class="whatsapp-message">
+                <p>👋 Hi there!</p>
+                <p>For any inquiries, chat with us:</p>
+                <a href="https://wa.me/254727949117?text=Hello%20Leantex%2C%20I%20have%20an%20inquiry" 
+                   target="_blank" 
+                   class="whatsapp-chat-btn">
+                    <i class="fab fa-whatsapp me-2"></i>
+                    <span>Chat: 0727949117</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- WhatsApp Floating Button -->
+    <button type="button" class="whatsapp-float" onclick="toggleWhatsApp()" aria-label="Chat on WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+        <span class="whatsapp-badge">1</span>
+    </button>
+</div>
+
+<style>
+    /* WhatsApp Floating Button Styles */
+    .whatsapp-container {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 9999;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .whatsapp-float {
+        width: 60px;
+        height: 60px;
+        background: #25D366;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 32px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        animation: whatsappPulse 2s infinite;
+    }
+
+    .whatsapp-float:hover {
+        background: #20BA5A;
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
+    }
+
+    .whatsapp-float:active {
+        transform: scale(0.95);
+    }
+
+    .whatsapp-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ff4444;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: badgePulse 1.5s infinite;
+    }
+
+    @keyframes whatsappPulse {
+        0% { box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); }
+        50% { box-shadow: 0 4px 25px rgba(37, 211, 102, 0.7); }
+        100% { box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); }
+    }
+
+    @keyframes badgePulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    /* WhatsApp Popup */
+    .whatsapp-popup {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 320px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(20px) scale(0.9);
+        transition: all 0.3s ease;
+        transform-origin: bottom right;
+    }
+
+    .whatsapp-popup.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+    }
+
+    .whatsapp-popup-header {
+        background: #075E54;
+        color: white;
+        padding: 15px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .whatsapp-header-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .whatsapp-avatar {
+        width: 40px;
+        height: 40px;
+        background: #25D366;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .whatsapp-header-info strong {
+        display: block;
+        font-size: 15px;
+    }
+
+    .whatsapp-header-info small {
+        font-size: 11px;
+        opacity: 0.8;
+    }
+
+    .whatsapp-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+    .whatsapp-close:hover {
+        opacity: 1;
+    }
+
+    .whatsapp-popup-body {
+        padding: 20px;
+        background: #ECE5DD;
+    }
+
+    .whatsapp-message {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .whatsapp-message p {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .whatsapp-chat-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #25D366;
+        color: white;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .whatsapp-chat-btn:hover {
+        background: #20BA5A;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 480px) {
+        .whatsapp-popup {
+            width: calc(100vw - 50px);
+            right: -10px;
+        }
+
+        .whatsapp-float {
+            width: 55px;
+            height: 55px;
+            font-size: 28px;
+        }
+
+        .whatsapp-container {
+            bottom: 20px;
+            right: 20px;
+        }
+    }
+</style>
+
+<script>
+    function toggleWhatsApp() {
+        const popup = document.getElementById('whatsappPopup');
+        popup.classList.toggle('show');
+    }
+
+    function closeWhatsApp() {
+        const popup = document.getElementById('whatsappPopup');
+        popup.classList.remove('show');
+    }
+
+    // Close popup when clicking outside
+    document.addEventListener('click', function(event) {
+        const container = document.querySelector('.whatsapp-container');
+        const popup = document.getElementById('whatsappPopup');
+        if (container && !container.contains(event.target) && popup.classList.contains('show')) {
+            popup.classList.remove('show');
+        }
+    });
+</script>
 </body>
 </html>
