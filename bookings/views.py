@@ -278,7 +278,7 @@ def booking_invoice(request, booking_id):
         'company': {
             'name': 'Leantex Company Limited',
             'address': 'Nairobi, Kenya',
-            'phone': '+254 700 000 000',
+            'phone': '+254 727949117',
             'email': 'info@leantex.co.ke',
             'website': 'www.leantex.co.ke',
         }

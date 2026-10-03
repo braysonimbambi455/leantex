@@ -55,7 +55,7 @@ class UserRegisterForm(UserCreationForm):
         required=True,
         validators=[RegexValidator(
             regex=r'^\+?1?\d{9,15}$',
-            message="Phone number must be entered in format: '+254700000000'"
+            message="Phone number must be entered in format: '+254 727949117'"
         )],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
@@ -170,7 +170,7 @@ class ProfileUpdateForm(forms.ModelForm):
         required=False,
         validators=[RegexValidator(
             regex=r'^\+?1?\d{9,15}$',
-            message="Phone number must be entered in format: '+254700000000'"
+            message="Phone number must be entered in format: '+254 727949117'"
         )],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
